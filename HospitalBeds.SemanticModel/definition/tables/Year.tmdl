@@ -32,9 +32,8 @@ table Year
 		mode: import
 		source =
 				let
-				    Source = Csv.Document(File.Contents(GoldFolder & "\dim_year.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
-				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				    Typed = Table.TransformColumnTypes(Promoted, {{"year", Int64.Type}, {"reference_date", type date}, {"is_latest_year", type logical}}, "en-US")
+				    Source = GoldTable("dim_year"),
+				    Typed = Table.TransformColumnTypes(Source, {{"year", Int64.Type}, {"reference_date", type date}, {"is_latest_year", type logical}}, "en-US")
 				in
 				    Typed
 

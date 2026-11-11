@@ -24,13 +24,14 @@ repos:
     hooks:
       - id: gitleaks
 
-  # Desktop writes the SampleDataFolder value set in "Edit parameters" into expressions.tmdl on Save.
-  # That value is a local path (drive, user name), so the commit must carry the placeholder instead.
+  # Desktop writes the parameter values set in "Edit parameters" into expressions.tmdl on Save.
+  # Those values are a local path (drive, user name) or a Databricks workspace (host, warehouse,
+  # schema with the user name), so the commit must carry the placeholders and the CSV source instead.
   - repo: local
     hooks:
       - id: sample-data-folder-placeholder
-        name: SampleDataFolder keeps its placeholder
+        name: Source parameters keep their placeholders (CSV source)
         language: pygrep
         files: (^|/)expressions\.tmdl$
-        entry: 'expression SampleDataFolder = "(?!<SET ME)'
+        entry: 'expression (SampleDataFolder|DatabricksHost|DatabricksHttpPath|DatabricksSchema) = "(?!<SET ME)|expression DataSource = "(?!CSV")'
         args: [--multiline]

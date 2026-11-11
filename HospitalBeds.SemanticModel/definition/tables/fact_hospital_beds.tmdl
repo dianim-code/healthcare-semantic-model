@@ -94,9 +94,8 @@ table fact_hospital_beds
 		mode: import
 		source =
 				let
-				    Source = Csv.Document(File.Contents(GoldFolder & "\fact_hospital_beds.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
-				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				    Typed = Table.TransformColumnTypes(Promoted, {{"year", Int64.Type}, {"facility_key", Int64.Type}, {"discipline_code", type text}, {"region_code", type text}, {"ward_count", Int64.Type}, {"beds_ordinary", Int64.Type}, {"beds_paying", Int64.Type}, {"beds_day_hospital", Int64.Type}, {"beds_day_surgery", Int64.Type}, {"beds_total", Int64.Type}}, "en-US")
+				    Source = GoldTable("fact_hospital_beds"),
+				    Typed = Table.TransformColumnTypes(Source, {{"year", Int64.Type}, {"facility_key", Int64.Type}, {"discipline_code", type text}, {"region_code", type text}, {"ward_count", Int64.Type}, {"beds_ordinary", Int64.Type}, {"beds_paying", Int64.Type}, {"beds_day_hospital", Int64.Type}, {"beds_day_surgery", Int64.Type}, {"beds_total", Int64.Type}}, "en-US")
 				in
 				    Typed
 

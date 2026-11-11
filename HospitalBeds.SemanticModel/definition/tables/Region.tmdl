@@ -84,9 +84,8 @@ table Region
 		mode: import
 		source =
 				let
-				    Source = Csv.Document(File.Contents(GoldFolder & "\dim_region.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
-				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				    Typed = Table.TransformColumnTypes(Promoted, {{"region_code", type text}, {"region_name", type text}, {"istat_region_name", type text}, {"istat_area_code", type text}, {"geographic_area", type text}, {"macro_area", type text}, {"is_autonomous_province", type logical}, {"sort_order", Int64.Type}}, "en-US")
+				    Source = GoldTable("dim_region"),
+				    Typed = Table.TransformColumnTypes(Source, {{"region_code", type text}, {"region_name", type text}, {"istat_region_name", type text}, {"istat_area_code", type text}, {"geographic_area", type text}, {"macro_area", type text}, {"is_autonomous_province", type logical}, {"sort_order", Int64.Type}}, "en-US")
 				in
 				    Typed
 

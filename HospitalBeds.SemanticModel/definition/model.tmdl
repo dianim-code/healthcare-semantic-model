@@ -10,7 +10,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["SampleDataFolder","Year","Region","Discipline","Facility","fact_hospital_beds","fact_population","_Measures","GoldFolder"]
+annotation PBI_QueryOrder = ["SampleDataFolder","Year","Region","Discipline","Facility","fact_hospital_beds","fact_population","_Measures","GoldFolder","DataSource","DatabricksHost","DatabricksHttpPath","DatabricksCatalog","DatabricksSchema","ReportFromYear","GoldTable"]
 
 annotation PBI_ProTooling = ["DevMode"]
 

@@ -123,9 +123,8 @@ table Facility
 		mode: import
 		source =
 				let
-				    Source = Csv.Document(File.Contents(GoldFolder & "\dim_facility.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
-				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				    Typed = Table.TransformColumnTypes(Promoted, {{"facility_key", Int64.Type}, {"facility_id", type text}, {"structure_code", type text}, {"site_subcode", type text}, {"facility_name", type text}, {"address", type text}, {"municipality_code", type text}, {"municipality_name", type text}, {"province_code", type text}, {"region_code", type text}, {"health_authority_id", type text}, {"health_authority_type", type text}, {"facility_type_code", type text}, {"facility_type_name", type text}, {"first_year", Int64.Type}, {"last_year", Int64.Type}}, "en-US"),
+				    Source = GoldTable("dim_facility"),
+				    Typed = Table.TransformColumnTypes(Source, {{"facility_key", Int64.Type}, {"facility_id", type text}, {"structure_code", type text}, {"site_subcode", type text}, {"facility_name", type text}, {"address", type text}, {"municipality_code", type text}, {"municipality_name", type text}, {"province_code", type text}, {"region_code", type text}, {"health_authority_id", type text}, {"health_authority_type", type text}, {"facility_type_code", type text}, {"facility_type_name", type text}, {"first_year", Int64.Type}, {"last_year", Int64.Type}}, "en-US"),
 				    EmptyToNull = Table.ReplaceValue(Typed, "", null, Replacer.ReplaceValue, {"site_subcode", "address"})
 				in
 				    EmptyToNull

@@ -23,7 +23,7 @@ Public hospital-bed data is easy to get wrong in a report:
   and in the model, and a BPA rule fails the build if a `*_code` column stops being text.
 
 Data contract: `contract/gold_schema.yml` (vendored, read-only, see `contract/VENDORED.md`). Decisions:
-`docs/decisions.md` (ADR-010 to ADR-021 are the ones for this repo).
+`docs/decisions.md` (ADR-010 to ADR-022 are the ones for this repo).
 
 ## Model
 
@@ -146,6 +146,9 @@ The Deneb spec of each chart is stored in its `visual.json`; to change a chart, 
    writes the path you set into `expressions.tmdl`, and that path contains your drive and user name.
    The pre-commit hook `sample-data-folder-placeholder` and the CI path check both reject it.
 
+To read the data from the lakehouse instead of the CSVs, see
+[Live source](#live-source-the-lakehouses-databricks-sql-warehouse).
+
 Editing the TMDL files from outside Desktop: save in Desktop first, edit, then choose **Apply external
 changes** in Desktop (do not press Save afterwards). See
 <https://learn.microsoft.com/power-bi/developer/projects/projects-external-editing>.
@@ -164,28 +167,53 @@ Add `-V` for Azure DevOps style log lines. TE2 checks TMDL structure and the BPA
 DAX. CI (`.github/workflows/semantic-model-ci.yml`) does the same on `windows-latest` with a pinned,
 checksum-verified portable build (ADR-015).
 
-## Alternative source: Databricks SQL warehouse (documented, not implemented)
+## Live source: the lakehouse's Databricks SQL warehouse
 
-The gold tables also exist in the lakehouse. To read them from a Databricks SQL warehouse instead of the
-CSVs, replace each table's M query with a navigation over the Databricks connector. The connector entry
-point is `Databricks.Catalogs` (Azure Databricks) or `DatabricksMultiCloud.Catalogs` (other clouds), with
-the server hostname and the warehouse HTTP path
-(<https://learn.microsoft.com/power-query/connectors/databricks-azure>):
+The same model reads the gold tables either from the CSVs of this repository (the default, so the project
+opens without an account) or straight from the `healthcare-lakehouse` gold schema through a Databricks SQL
+warehouse. The parameter **`DataSource`** picks the source; nothing else in the model changes (ADR-022).
 
-```powerquery
-let
-    Source  = Databricks.Catalogs("<workspace-host>", "/sql/1.0/warehouses/<warehouse-id>", [Catalog = null, Database = null]),
-    Catalog = Source{[Name = "<catalog>", Kind = "Database"]}[Data],
-    Schema  = Catalog{[Name = "gold", Kind = "Schema"]}[Data],
-    Table   = Schema{[Name = "dim_year", Kind = "Table"]}[Data]
-in
-    Table
+```mermaid
+flowchart LR
+    P["DataSource"] --> G["GoldTable(name)"]
+    C["sample-data/gold/*.csv"] -->|CSV| G
+    D[("Databricks SQL warehouse<br/>gold schema")] -->|Databricks| G
+    G --> T["Year, Region, Discipline, Facility,<br/>fact_hospital_beds, fact_population"]
 ```
 
-Keep the explicit `Table.TransformColumnTypes` step, keep codes as text, and replace `SampleDataFolder`
-with host, HTTP path and catalog parameters. Column names and types are the contract, so the model, the
-measures and the RLS role do not change. The navigation shape (`Kind` values) is what Desktop generates
-for this connector but was not run against a live workspace here.
+To use Databricks, set in **Home > Transform data > Edit parameters**:
+
+| Parameter | Value |
+|---|---|
+| `DataSource` | `Databricks` |
+| `DatabricksHost` | the workspace server hostname (SQL warehouse > Connection details), without `https://` |
+| `DatabricksHttpPath` | the warehouse HTTP path, `/sql/1.0/warehouses/<warehouse id>` |
+| `DatabricksCatalog` | `workspace` on Databricks Free Edition |
+| `DatabricksSchema` | the lakehouse bundle's schema; in the `dev` target `dev_<user>_healthcare_lakehouse` |
+| `ReportFromYear` | `2021` (leave it: the report is laid out for 2021-2023) |
+
+Then **Refresh** and sign in when Desktop asks: the **Databricks** connector (`DatabricksMultiCloud.Catalogs`,
+workspaces on AWS or GCP) accepts **OAuth (OIDC)**, so no personal access token is needed
+(<https://learn.microsoft.com/power-query/connectors/databricks>). For Azure Databricks the entry point is
+`Databricks.Catalogs` of the Azure Databricks connector instead.
+
+How it behaves:
+
+- **Import mode.** The warehouse is queried only on refresh. A serverless warehouse starts on the first
+  query and stops on its own after its idle timeout; on Free Edition the cold start plus the first query
+  took about 8 seconds. Between refreshes the report works on its in-memory copy.
+- **The year filter folds.** Desktop sends `WHERE year >= 2021` (and `last_year >= 2021` for facilities) to
+  the warehouse, so only the report window travels: 3 / 69 / 21 / 1,319 / 35,053 / 63 rows, each query
+  under a second.
+- **Same numbers as the CSVs.** The lakehouse and the pandas reference that built the sample are checked
+  against each other (lakehouse parity test), and the refresh from Databricks gave the same row counts and
+  measure values as the CSV refresh (verification log).
+- The gold window of the lakehouse starts in 2019. `ReportFromYear` keeps the report on 2021-2023 because
+  chart titles and the dumbbell and small multiples are built for that window.
+
+Before committing, put the placeholders back and `DataSource` to `CSV`: Desktop writes the values you set
+into `expressions.tmdl`, and host, HTTP path and schema identify your workspace. The pre-commit hook and
+the CI check reject them.
 
 ## Row-level security
 

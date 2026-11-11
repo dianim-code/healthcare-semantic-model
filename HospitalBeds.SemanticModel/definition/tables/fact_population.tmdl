@@ -32,9 +32,8 @@ table fact_population
 		mode: import
 		source =
 				let
-				    Source = Csv.Document(File.Contents(GoldFolder & "\fact_population.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
-				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
-				    Typed = Table.TransformColumnTypes(Promoted, {{"year", Int64.Type}, {"region_code", type text}, {"population", Int64.Type}}, "en-US")
+				    Source = GoldTable("fact_population"),
+				    Typed = Table.TransformColumnTypes(Source, {{"year", Int64.Type}, {"region_code", type text}, {"population", Int64.Type}}, "en-US")
 				in
 				    Typed
 

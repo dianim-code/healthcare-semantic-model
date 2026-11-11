@@ -22,3 +22,74 @@ expression GoldFolder =
 
 	annotation PBI_ResultType = Text
 
+/// Where the table queries read the gold tables: "CSV" (the sample-data\gold files of this repository, the default) or "Databricks" (the gold schema in a Databricks SQL warehouse, see the Databricks parameters).
+expression DataSource = "CSV" meta [IsParameterQuery=true, List={"CSV", "Databricks"}, DefaultValue="CSV", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 99e293ae-10e4-452f-bd9e-d75b4c0b821c
+
+	annotation PBI_ResultType = Text
+
+/// Databricks only: server hostname of the workspace, as shown in the SQL warehouse connection details (no https://).
+expression DatabricksHost = "<SET ME: Databricks server hostname>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: b154d93f-5cd5-427a-b436-5b87a4596cf1
+
+	annotation PBI_ResultType = Text
+
+/// Databricks only: HTTP path of the SQL warehouse, for example /sql/1.0/warehouses/<warehouse id>.
+expression DatabricksHttpPath = "<SET ME: SQL warehouse HTTP path>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f7ef8c76-b693-4a5f-88b4-71609f23bef5
+
+	annotation PBI_ResultType = Text
+
+/// Databricks only: Unity Catalog catalog that holds the gold schema.
+expression DatabricksCatalog = "workspace" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f0fa5827-934e-4ccf-9791-becf96d10c8d
+
+	annotation PBI_ResultType = Text
+
+/// Databricks only: schema of the gold tables, the lakehouse bundle's schema (dev target: dev_<user>_healthcare_lakehouse).
+expression DatabricksSchema = "<SET ME: gold schema>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: f6360fad-e269-4382-9dc7-d73f77866cb6
+
+	annotation PBI_ResultType = Text
+
+/// Databricks only: first year read. The report is laid out for 2021-2023, the window of the committed sample; the lakehouse gold window starts earlier.
+expression ReportFromYear = 2021 meta [IsParameterQuery=true, Type="Number", IsParameterQueryRequired=true]
+	lineageTag: 13826eba-2f22-417b-a642-d497f601447f
+
+	annotation PBI_ResultType = Number
+
+/// Reads one gold table, by its contract name, from the source chosen in DataSource. Columns keep the contract names; each table query types them. From Databricks only the report window is read (ReportFromYear onwards).
+expression GoldTable =
+		(name as text) as table =>
+		let
+		    IsSet = (value) => value <> null and Text.Trim(value) <> "" and not Text.StartsWith(Text.Trim(value), "<"),
+		    FromDatabricks = () =>
+		        let
+		            Checked =
+		                if IsSet(DatabricksHost) and IsSet(DatabricksHttpPath) and IsSet(DatabricksSchema) then true
+		                else error Error.Record(
+		                    "Databricks parameters are not set",
+		                    "Set DatabricksHost, DatabricksHttpPath and DatabricksSchema (Home > Transform data > Edit parameters), or set DataSource back to CSV.",
+		                    null
+		                ),
+		            Source = DatabricksMultiCloud.Catalogs(Text.Trim(DatabricksHost), Text.Trim(DatabricksHttpPath), [Catalog = null, Database = null, EnableAutomaticProxyDiscovery = null]),
+		            Catalog = Source{[Name = DatabricksCatalog, Kind = "Database"]}[Data],
+		            Schema = Catalog{[Name = DatabricksSchema, Kind = "Schema"]}[Data],
+		            Gold = Schema{[Name = name, Kind = "Table"]}[Data],
+		            Window =
+		                if Table.HasColumns(Gold, "year") then Table.SelectRows(Gold, each [year] >= ReportFromYear)
+		                else if Table.HasColumns(Gold, "last_year") then Table.SelectRows(Gold, each [last_year] >= ReportFromYear)
+		                else Gold
+		        in
+		            if Checked then Window else null,
+		    FromCsv = () =>
+		        Table.PromoteHeaders(
+		            Csv.Document(File.Contents(GoldFolder & "\" & name & ".csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+		            [PromoteAllScalars = true]
+		        )
+		in
+		    if DataSource = "Databricks" then FromDatabricks() else FromCsv()
+	lineageTag: f651f6b3-10a9-4270-82ea-c865aa3c2def
+
+	annotation PBI_ResultType = Function
+

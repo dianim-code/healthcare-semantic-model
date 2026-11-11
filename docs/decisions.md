@@ -83,8 +83,8 @@ Contract type mapping: `int` and `bigint` to `Int64.Type`/`int64`, `date` to `ty
 `UnderlyingDateTimeDataType = Date`, `boolean` to `type logical`/`boolean`.
 
 **Trade-offs.** The parameter is not set by CI (the BPA reads metadata only), so the placeholder fails
-a refresh until the user sets it. That is intended. The Databricks alternative is documented in the
-README and not implemented.
+a refresh until the user sets it. That is intended. A second source, the lakehouse's Databricks SQL
+warehouse, was added later behind the same table queries (ADR-022).
 
 ## ADR-012 · Pure star schema, single direction, no facility-to-region link
 
@@ -240,6 +240,29 @@ visuals the two fields keep the names the specs use ("Region", "Sort Order") thr
 measures sum beds and population before dividing, so they are correct at the ISTAT level too. The rank
 measures need one `Region Code` in context, so they are blank for Trentino-Alto Adige.
 
+## ADR-022 · Two sources behind one function: CSV by default, Databricks on demand
+
+*2026-11-11 · Accepted*
+
+**Context.** The model read only the committed CSVs, so the link to the lakehouse was documented but not
+shown. The CSVs must stay the default: anyone who clones the repository has to be able to open and refresh
+the project without a Databricks account.
+
+**Decision.** A parameter `DataSource` (`CSV` or `Databricks`) and a function query `GoldTable(name)`. Each
+table query calls `GoldTable("<contract table>")` and keeps its own `Table.TransformColumnTypes` step, so
+the column names, types, relationships, measures and RLS are the same for both sources. The Databricks
+branch uses `DatabricksMultiCloud.Catalogs` (Databricks connector, OAuth (OIDC) sign-in) with the host,
+HTTP path, catalog and schema as parameters, and keeps rows from `ReportFromYear` (2021) onwards, on `year`
+or, for facilities, `last_year`. The filter folds to the warehouse. Import mode, not DirectQuery: the data
+changes once a year, and DirectQuery would wake the warehouse on every interaction.
+
+**Trade-offs.** Workspace values must never be committed: they stay placeholders, and the pre-commit hook
+and the CI check reject a real host, HTTP path or schema, or a source other than `CSV`. `facility_key` is an
+ordinal within the lakehouse's gold window (contract rule C4), which starts in 2019, so its values differ
+from the sample's; it is only used as a join key, so no result changes. `Facility[first_year]` can be 2019
+or 2020 from Databricks. A switch between sources is a full refresh. A service refresh would need the
+Databricks credentials set on the published semantic model; this project is not published.
+
 ---
 
 ## Resolved items
@@ -260,3 +283,5 @@ measures need one `Region Code` in context, so they are blank for Trentino-Alto 
 | 2026-11-10 | Opened in Power BI Desktop | The PBIP opens; after setting `SampleDataFolder` the refresh loads 35,053 / 1,319 / 69 / 21 / 3 / 63 rows; codes keep leading zeros (`010`, `08`, `2.1`, 6-digit municipalities) | Desktop 2.159.1231.0, read-only DAX queries against the local Analysis Services instance of Desktop |
 | 2026-11-10 | Measures on a live engine | All 21 measures evaluate. Every value matches an independent pandas computation on `sample-data/gold`: 2023 beds 212,768, 3.6064 and 3.2467 per 1,000, YoY -8,903 (-4.02%); with 2021 and 2022 selected the measures return 2022, never the sum; 2021 prior year is blank; regional shares and both dense ranks match for all 21 regions | same |
 | 2026-11-10 | RLS role `Region Piemonte` | Under impersonation: 1 region, 100 facilities, none from other regions, 18,080 beds, population 4,251,351; `Share of National Beds` = 100% as documented in ADR-016 | same |
+| 2026-11-11 | Databricks connector | `DatabricksMultiCloud.Catalogs(host, httpPath, options)`; authentication kinds Databricks Client Credentials, OAuth (OIDC), Personal Access Token; for warehouses on AWS with OAuth | [Power Query Databricks connector](https://learn.microsoft.com/power-query/connectors/databricks) |
+| 2026-11-11 | Refresh from Databricks | Free Edition serverless SQL warehouse (2X-Small, auto-stop 10 min), OAuth sign-in in Desktop. Six queries from the Power BI client, `WHERE year >= 2021` / `last_year >= 2021` folded; rows 3 / 69 / 21 / 1,319 / 35,053 / 63, each under 0.7 s. Measures equal the CSV refresh: 2023 beds 212,768, 3.6064 and 3.2467 per 1,000, YoY -8,903 (-4.02%), 1,272 sites, 20 ISTAT regions, Piemonte 3.8421 | warehouse query history; DAX queries against the local Desktop instance |

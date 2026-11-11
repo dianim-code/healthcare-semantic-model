@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Check PBIP files (no BOM, no local paths)
+      - name: Check PBIP files (no BOM, no local paths, no workspace)
         shell: pwsh
         run: |
           $files = Get-ChildItem -Recurse -File -Include *.tmdl,*.json,*.pbip,*.pbir,*.pbism,.platform `
@@ -34,7 +34,9 @@ jobs:
           foreach ($f in $files) {
             $b = [System.IO.File]::ReadAllBytes($f.FullName)
             if ($b.Length -ge 3 -and $b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { $bad += "BOM: $($f.FullName)" }
-            if ((Get-Content -Raw $f.FullName) -match '(?i)\b[A-Z]:\\(Users|Projects)\b') { $bad += "local path: $($f.FullName)" }
+            $text = Get-Content -Raw $f.FullName
+            if ($text -match '(?i)\b[A-Z]:\\(Users|Projects)\b') { $bad += "local path: $($f.FullName)" }
+            if ($text -match '(?i)cloud\.databricks\.com|azuredatabricks\.net|/sql/1\.0/warehouses/[0-9a-f]') { $bad += "Databricks workspace: $($f.FullName)" }
           }
           if ($bad) { $bad | ForEach-Object { Write-Error $_ }; exit 1 }
           Write-Output "Checked $($files.Count) files: OK"
