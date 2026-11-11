@@ -1,0 +1,24 @@
+/// Full path of the folder holding the gold CSV files (the sample-data\gold folder of this repository). Replace the placeholder before the first refresh.
+expression SampleDataFolder = "<SET ME: full path of the sample-data\gold folder>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 614f3174-35f0-4dd9-b4be-d94a53c3b318
+
+	annotation PBI_ResultType = Text
+
+/// Validated folder of the gold CSV files, used by every table query. While SampleDataFolder still holds its placeholder it raises a clear error instead of a file-system error.
+expression GoldFolder =
+		let
+		    Raw = SampleDataFolder,
+		    IsSet = Raw <> null and Text.Trim(Raw) <> "" and not Text.StartsWith(Text.Trim(Raw), "<"),
+		    Folder =
+		        if IsSet then Text.TrimEnd(Text.Trim(Raw), {"\", "/"})
+		        else error Error.Record(
+		            "SampleDataFolder is not set",
+		            "Set the SampleDataFolder parameter to the full path of the sample-data\gold folder of this repository (Home > Transform data > Edit parameters), then refresh.",
+		            Raw
+		        )
+		in
+		    Folder
+	lineageTag: e1af803c-5196-45ad-b7fd-9861d3c4177e
+
+	annotation PBI_ResultType = Text
+

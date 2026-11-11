@@ -1,0 +1,9 @@
+# --- Power BI (PBIP) ---
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

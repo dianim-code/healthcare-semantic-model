@@ -1,0 +1,28 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-US
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["SampleDataFolder","Year","Region","Discipline","Facility","fact_hospital_beds","fact_population","_Measures","GoldFolder"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Year
+ref table Region
+ref table Discipline
+ref table Facility
+ref table fact_hospital_beds
+ref table fact_population
+ref table _Measures
+
+ref role 'Region Piemonte'
+
+ref cultureInfo en-US
+

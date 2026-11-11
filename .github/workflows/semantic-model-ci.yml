@@ -1,0 +1,60 @@
+name: semantic-model-ci
+
+# Loads the TMDL folder with Tabular Editor 2 (portable, pinned) and runs the Best Practice
+# Analyzer with the rules in quality/bpa-rules.json. Rules with severity 3 (error) fail the job;
+# severity 1-2 are reported as warnings only (TE2 exits 0). See ADR-015.
+on:
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+
+permissions:
+  contents: read
+
+env:
+  TE2_VERSION: "2.28.0"
+  # SHA-256 of TabularEditor.Portable.zip from the 2.28.0 GitHub release
+  TE2_SHA256: "ba85f4653c850b06687e6e0b3c8af3d7c951921ec281deb5df615b2ce43d4ef2"
+
+jobs:
+  bpa:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check PBIP files (no BOM, no local paths)
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -File -Include *.tmdl,*.json,*.pbip,*.pbir,*.pbism,.platform `
+            -Path HospitalBeds.pbip, HospitalBeds.SemanticModel, HospitalBeds.Report
+          $bad = @()
+          foreach ($f in $files) {
+            $b = [System.IO.File]::ReadAllBytes($f.FullName)
+            if ($b.Length -ge 3 -and $b[0] -eq 0xEF -and $b[1] -eq 0xBB -and $b[2] -eq 0xBF) { $bad += "BOM: $($f.FullName)" }
+            if ((Get-Content -Raw $f.FullName) -match '(?i)\b[A-Z]:\\(Users|Projects)\b') { $bad += "local path: $($f.FullName)" }
+          }
+          if ($bad) { $bad | ForEach-Object { Write-Error $_ }; exit 1 }
+          Write-Output "Checked $($files.Count) files: OK"
+
+      - name: Download Tabular Editor 2 (portable, pinned)
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP "te2.zip"
+          Invoke-WebRequest -Uri "https://github.com/TabularEditor/TabularEditor/releases/download/$env:TE2_VERSION/TabularEditor.Portable.zip" -OutFile $zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash
+          if ($hash -ne $env:TE2_SHA256.ToUpper()) { throw "Checksum mismatch: $hash" }
+          Expand-Archive $zip -DestinationPath (Join-Path $env:RUNNER_TEMP "te2")
+
+      - name: Best Practice Analyzer
+        shell: pwsh
+        run: |
+          # TabularEditor.exe is a GUI-subsystem binary: piping to Out-Host makes PowerShell wait for it
+          # and stream its console output. -A <file> runs only the rules in that file (plus rules
+          # stored in the model, none here). Exit code: 1 if any error-severity rule is violated.
+          $te = Join-Path $env:RUNNER_TEMP "te2\TabularEditor.exe"
+          & $te "$env:GITHUB_WORKSPACE\HospitalBeds.SemanticModel\definition" `
+            -A "$env:GITHUB_WORKSPACE\quality\bpa-rules.json" | Out-Host
+          if ($LASTEXITCODE -ne 0) { throw "Best Practice Analyzer reported errors (exit code $LASTEXITCODE)" }

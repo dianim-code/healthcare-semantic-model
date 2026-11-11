@@ -1,0 +1,152 @@
+[
+  {
+    "ID": "HS_TABLE_HAS_DESCRIPTION",
+    "Name": "[Documentation] Every table has a description",
+    "Category": "Documentation",
+    "Description": "Tables must carry a description (TMDL /// block), taken from the data contract for data tables.",
+    "Severity": 3,
+    "Scope": "Table",
+    "Expression": "string.IsNullOrWhitespace(Description)",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_MEASURE_HAS_DESCRIPTION",
+    "Name": "[Documentation] Every measure has a description",
+    "Category": "Documentation",
+    "Description": "Every measure, hidden or not, must say what it computes and how it behaves across years.",
+    "Severity": 3,
+    "Scope": "Measure",
+    "Expression": "string.IsNullOrWhitespace(Description)",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_COLUMN_HAS_DESCRIPTION",
+    "Name": "[Documentation] Visible columns have a description",
+    "Category": "Documentation",
+    "Description": "Columns a report author can see should be described.",
+    "Severity": 2,
+    "Scope": "DataColumn, CalculatedColumn",
+    "Expression": "not IsHidden and string.IsNullOrWhitespace(Description)",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_MEASURE_HAS_DISPLAY_FOLDER",
+    "Name": "[Usability] Visible measures are in a display folder",
+    "Category": "Usability",
+    "Description": "Measures live in display folders so the field list stays navigable.",
+    "Severity": 2,
+    "Scope": "Measure",
+    "Expression": "not IsHidden and string.IsNullOrWhitespace(DisplayFolder)",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_MEASURE_HAS_FORMAT_STRING",
+    "Name": "[Usability] Visible measures have a format string",
+    "Category": "Usability",
+    "Description": "Set formatString so numbers render consistently in every visual. Text measures (built with the & concatenation operator, e.g. the home-page date) are excluded: a format string does not apply to them.",
+    "Severity": 2,
+    "Scope": "Measure",
+    "Expression": "not IsHidden and string.IsNullOrWhitespace(FormatString) and not Expression.Contains(\" & \")",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_NUMERIC_COLUMNS_DO_NOT_SUMMARIZE",
+    "Name": "[Modelling] Numeric columns do not summarize (summarizeBy: none)",
+    "Category": "Modelling",
+    "Description": "Keys, years and bed counts must not be summed implicitly: beds and population are stocks and are only aggregated through measures.",
+    "Severity": 3,
+    "Scope": "DataColumn",
+    "Expression": "(DataType = \"Int64\" or DataType = \"Decimal\" or DataType = \"Double\") and SummarizeBy <> \"None\"",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_CODE_COLUMNS_ARE_TEXT",
+    "Name": "[Modelling] Code columns are text",
+    "Category": "Modelling",
+    "Description": "Region, discipline, facility-type and municipality codes carry leading zeros and must stay text. Matches the business names of the dimensions (\"... Code\") and the contract names kept by the hidden fact columns (\"..._code\").",
+    "Severity": 3,
+    "Scope": "DataColumn",
+    "Expression": "(Name.EndsWith(\"_code\") or Name.EndsWith(\" Code\")) and DataType <> \"String\"",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_NO_FLOATING_POINT",
+    "Name": "[Performance] Do not use floating point data types",
+    "Category": "Performance",
+    "Description": "Use int64 or decimal columns instead of double.",
+    "Severity": 2,
+    "Scope": "DataColumn, CalculatedColumn",
+    "Expression": "DataType = \"Double\"",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_FACT_COLUMNS_HIDDEN",
+    "Name": "[Usability] Columns of fact tables are hidden",
+    "Category": "Usability",
+    "Description": "Facts are consumed through measures and dimensions only.",
+    "Severity": 2,
+    "Scope": "DataColumn, CalculatedColumn",
+    "Expression": "Table.Name.StartsWith(\"fact_\") and not IsHidden",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_HIDE_FOREIGN_KEYS",
+    "Name": "[Usability] Foreign keys are hidden",
+    "Category": "Usability",
+    "Description": "The many-side column of a relationship should be hidden.",
+    "Severity": 3,
+    "Scope": "Relationship",
+    "Expression": "not FromColumn.IsHidden",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_NO_BIDIRECTIONAL_RELATIONSHIPS",
+    "Name": "[Modelling] Relationships are single direction",
+    "Category": "Modelling",
+    "Description": "Star schema: filters flow from dimension to fact only.",
+    "Severity": 3,
+    "Scope": "Relationship",
+    "Expression": "CrossFilteringBehavior = \"BothDirections\"",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_NO_MANY_TO_MANY",
+    "Name": "[Modelling] No many-to-many relationships",
+    "Category": "Modelling",
+    "Description": "The model is a pure star with many-to-one relationships.",
+    "Severity": 3,
+    "Scope": "Relationship",
+    "Expression": "FromCardinality = \"Many\" and ToCardinality = \"Many\"",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_NO_INACTIVE_RELATIONSHIPS",
+    "Name": "[Modelling] No inactive relationships",
+    "Category": "Modelling",
+    "Description": "There are no role-playing dimensions in this model; an inactive relationship is a mistake.",
+    "Severity": 2,
+    "Scope": "Relationship",
+    "Expression": "not IsActive",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_DISCOURAGE_IMPLICIT_MEASURES",
+    "Name": "[Modelling] Implicit measures are discouraged",
+    "Category": "Modelling",
+    "Description": "All aggregation goes through explicit measures, which implement the semi-additive logic.",
+    "Severity": 3,
+    "Scope": "Model",
+    "Expression": "not DiscourageImplicitMeasures",
+    "CompatibilityLevel": 1200
+  },
+  {
+    "ID": "HS_AVOID_IFERROR",
+    "Name": "[DAX] Do not use IFERROR or ISERROR",
+    "Category": "DAX",
+    "Description": "Use DIVIDE for safe division instead of swallowing errors.",
+    "Severity": 2,
+    "Scope": "Measure",
+    "Expression": "Expression.ToUpper().Replace(\" \", \"\").Contains(\"IFERROR(\") or Expression.ToUpper().Replace(\" \", \"\").Contains(\"ISERROR(\")",
+    "CompatibilityLevel": 1200
+  }
+]

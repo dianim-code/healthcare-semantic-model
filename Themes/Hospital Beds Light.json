@@ -1,0 +1,282 @@
+{
+  "name": "Hospital Beds Light",
+  "dataColors": [
+    "#0155AB",
+    "#CC5728",
+    "#009298",
+    "#7971D0",
+    "#8B306A",
+    "#079868",
+    "#955E02",
+    "#0090A8"
+  ],
+  "firstLevelElements": "#252423",
+  "secondLevelElements": "#666665",
+  "thirdLevelElements": "#E1EBF5",
+  "fourthLevelElements": "#9D9C9C",
+  "background": "#FFFFFF",
+  "secondaryBackground": "#EBF1F8",
+  "tableAccent": "#0155AB",
+  "good": "#1A7F4B",
+  "neutral": "#A86F00",
+  "bad": "#C4314B",
+  "maximum": "#0155AB",
+  "center": "#F2F2F2",
+  "minimum": "#CC5728",
+  "null": "#FF7F48",
+  "textClasses": {
+    "callout": {
+      "fontSize": 32,
+      "fontFace": "Segoe UI",
+      "color": "#252423"
+    },
+    "title": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI",
+      "color": "#252423"
+    },
+    "header": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI",
+      "color": "#252423"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#252423"
+    }
+  },
+  "visualStyles": {
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": {
+              "solid": {
+                "color": "#F2F7FB"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "outspace": [
+          {
+            "color": {
+              "solid": {
+                "color": "#F2F7FB"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "*": {
+      "*": {
+        "background": [
+          {
+            "show": true,
+            "color": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "transparency": 0
+          }
+        ],
+        "outspacePane": [
+          {
+            "backgroundColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "foregroundColor": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "borderColor": {
+              "solid": {
+                "color": "#E1EBF5"
+              }
+            },
+            "checkboxAndApplyColor": {
+              "solid": {
+                "color": "#0155AB"
+              }
+            },
+            "inputBoxColor": {
+              "solid": {
+                "color": "#EBF1F8"
+              }
+            }
+          }
+        ],
+        "filterCard": [
+          {
+            "$id": "Available",
+            "backgroundColor": {
+              "solid": {
+                "color": "#EBF1F8"
+              }
+            },
+            "foregroundColor": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "inputBoxColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "borderColor": {
+              "solid": {
+                "color": "#E1EBF5"
+              }
+            }
+          },
+          {
+            "$id": "Applied",
+            "backgroundColor": {
+              "solid": {
+                "color": "#EBF1F8"
+              }
+            },
+            "foregroundColor": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "inputBoxColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "borderColor": {
+              "solid": {
+                "color": "#0155AB"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "slicer": {
+      "*": {
+        "items": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "background": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "outlineStyle": 0,
+            "outlineColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "header": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "background": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "outlineStyle": 0,
+            "outlineColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "dropdown": [
+          {
+            "borderColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ]
+      }
+    },
+    "advancedSlicerVisual": {
+      "*": {
+        "items": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "background": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "outlineStyle": 0,
+            "outlineColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "header": [
+          {
+            "fontColor": {
+              "solid": {
+                "color": "#252423"
+              }
+            },
+            "background": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            },
+            "outlineStyle": 0,
+            "outlineColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "dropdown": [
+          {
+            "borderColor": {
+              "solid": {
+                "color": "#FFFFFF"
+              }
+            }
+          }
+        ],
+        "border": [
+          {
+            "show": false
+          }
+        ]
+      }
+    }
+  }
+}

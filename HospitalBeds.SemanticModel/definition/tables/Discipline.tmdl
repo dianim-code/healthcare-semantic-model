@@ -1,0 +1,39 @@
+/// Hospital disciplines (clinical specialties) as coded by the Ministry of Health.
+table Discipline
+	lineageTag: 93e5d903-411e-40dc-a310-88a6bbc17a94
+
+	/// Ministry 2-digit discipline code (e.g. 08 = Cardiologia).
+	column 'Discipline Code'
+		dataType: string
+		isHidden
+		lineageTag: 89bcc1e4-f22d-4301-a82a-0e800a1ba6bd
+		summarizeBy: none
+		sourceColumn: discipline_code
+
+	/// Discipline name, taken from the latest year in the gold window (SCD type 1).
+	column Discipline
+		dataType: string
+		lineageTag: 996b6aee-76b2-4631-a3ff-68facf3934fb
+		summarizeBy: none
+		sourceColumn: discipline_name
+		sortByColumn: 'Discipline Code'
+
+	/// Ministry grouping. Riabilitazione = codes 28, 56, 75; Lungodegenza = code 60; Acuti = everything else.
+	column 'Discipline Type'
+		dataType: string
+		lineageTag: b8881e06-40e5-4e4c-8ebf-5fb5aab057c6
+		summarizeBy: none
+		sourceColumn: discipline_type
+
+	partition Discipline = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(GoldFolder & "\dim_discipline.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"discipline_code", type text}, {"discipline_name", type text}, {"discipline_type", type text}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

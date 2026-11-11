@@ -1,0 +1,94 @@
+/// Italian regions and the two autonomous provinces (21 rows), as coded by the Ministry of Health.
+table Region
+	lineageTag: 437730a6-545a-4b26-aeea-64642308ba2b
+
+	/// Ministry of Health 3-digit region code (010 Piemonte ... 200 Sardegna; 041 Bolzano, 042 Trento).
+	column 'Region Code'
+		dataType: string
+		isHidden
+		lineageTag: b848812f-e32f-4b6a-89a4-5e21940c3121
+		summarizeBy: none
+		sourceColumn: region_code
+
+	/// Official region or autonomous-province name.
+	column Region
+		dataType: string
+		lineageTag: c2b38734-3c87-46f0-aeea-e9716a3e9d13
+		summarizeBy: none
+		sourceColumn: region_name
+		sortByColumn: 'Sort Order'
+
+	/// Territory code used by the ISTAT population dataflow (NUTS-2 style, e.g. ITC1, ITD1). Join key to the population source.
+	column 'ISTAT Area Code'
+		dataType: string
+		isHidden
+		lineageTag: 5acf5e2a-9008-45ed-80dd-d426c9ea58fc
+		summarizeBy: none
+		sourceColumn: istat_area_code
+
+	/// ISTAT five-way geographic breakdown (NUTS-1).
+	column 'Geographic Area'
+		dataType: string
+		lineageTag: 4eab29f3-f72e-4523-a343-2d4f61548a27
+		summarizeBy: none
+		sourceColumn: geographic_area
+
+	/// Three-way breakdown used in Italian public reporting.
+	column 'Macro Area'
+		dataType: string
+		lineageTag: e8159335-dc85-4b64-b2c8-06ca59c4ec28
+		summarizeBy: none
+		sourceColumn: macro_area
+
+	/// True for the autonomous provinces of Bolzano and Trento.
+	column 'Is Autonomous Province'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: be3ab12b-7ffa-4ffc-9d6d-df3df446406a
+		summarizeBy: none
+		sourceColumn: is_autonomous_province
+
+	/// Display order, following the Ministry code order.
+	column 'Sort Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5328eab8-0b55-4d1e-a48a-b190698e83ca
+		summarizeBy: none
+		sourceColumn: sort_order
+
+	/// ISTAT region (20 values): the region name, except for the autonomous provinces of Bolzano and Trento, which both belong to Trentino-Alto Adige. Use it for views of the 20 regions.
+	column 'ISTAT Region'
+		dataType: string
+		lineageTag: eea917b2-b63f-41e1-97a0-aabd787c6785
+		summarizeBy: none
+		sourceColumn: istat_region_name
+
+	/// Drill path from the three-way macro area to the region.
+	hierarchy Geography
+		lineageTag: 9d41e34a-d009-40a7-a67e-5ae47b3c778a
+
+		level 'Macro Area'
+			lineageTag: c8ca73dd-d3c0-4f82-b804-a1211f879dde
+			column: 'Macro Area'
+
+		level 'Geographic Area'
+			lineageTag: bde9d04c-35a0-4091-910d-f0a31df29b56
+			column: 'Geographic Area'
+
+		level Region
+			lineageTag: ed1f9cf9-bc4f-4844-80de-c5cedc7e2215
+			column: Region
+
+	partition Region = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(GoldFolder & "\dim_region.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"region_code", type text}, {"region_name", type text}, {"istat_region_name", type text}, {"istat_area_code", type text}, {"geographic_area", type text}, {"macro_area", type text}, {"is_autonomous_province", type logical}, {"sort_order", Int64.Type}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

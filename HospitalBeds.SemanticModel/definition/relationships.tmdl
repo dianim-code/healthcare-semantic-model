@@ -1,0 +1,24 @@
+relationship 8ddf72ba-12f9-4a07-9746-3eeb1e6cb39c
+	fromColumn: fact_hospital_beds.year
+	toColumn: Year.Year
+
+relationship 323a895b-0b53-4c59-a884-00c4854b3cd3
+	fromColumn: fact_hospital_beds.facility_key
+	toColumn: Facility.'Facility Key'
+
+relationship 37caab57-7061-4483-9c55-1023501f9707
+	fromColumn: fact_hospital_beds.discipline_code
+	toColumn: Discipline.'Discipline Code'
+
+relationship 22ee2d1d-5c88-46fa-91ba-edabca62d9a7
+	fromColumn: fact_hospital_beds.region_code
+	toColumn: Region.'Region Code'
+
+relationship d614032f-7404-4071-ab2d-35074b06c5c7
+	fromColumn: fact_population.year
+	toColumn: Year.Year
+
+relationship 4e91e71a-b35c-4e59-9523-371b4a8f7961
+	fromColumn: fact_population.region_code
+	toColumn: Region.'Region Code'
+

@@ -1,0 +1,36 @@
+# Run once:  uvx pre-commit install
+# Run all:   uvx pre-commit run --all-files
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: \.(csv|md)$
+      - id: end-of-file-fixer
+        # Power BI Desktop writes PBIR JSON without a final newline and TMDL with an extra blank line,
+        # and rewrites them on every Save: leave its files as it writes them.
+        exclude: ^(HospitalBeds\.(Report|SemanticModel)/|HospitalBeds\.pbip$)|\.csv$
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: [--maxkb=2048]
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        exclude: \.csv$
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+
+  # Desktop writes the SampleDataFolder value set in "Edit parameters" into expressions.tmdl on Save.
+  # That value is a local path (drive, user name), so the commit must carry the placeholder instead.
+  - repo: local
+    hooks:
+      - id: sample-data-folder-placeholder
+        name: SampleDataFolder keeps its placeholder
+        language: pygrep
+        files: (^|/)expressions\.tmdl$
+        entry: 'expression SampleDataFolder = "(?!<SET ME)'
+        args: [--multiline]

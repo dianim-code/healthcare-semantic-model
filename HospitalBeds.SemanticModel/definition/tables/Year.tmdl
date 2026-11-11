@@ -1,0 +1,42 @@
+/// One row per reference year in the gold window.
+table Year
+	lineageTag: 05e19af3-7f29-42a0-a00a-312ab6d72380
+
+	/// Reference year. Bed counts and population are both measured on 1 January of this year.
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: cc9b8f71-d2c0-4dc7-aace-a757147f3e47
+		summarizeBy: none
+		sourceColumn: year
+
+	/// The census date of the year, always 1 January.
+	column 'Reference Date'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: d92f769d-d93a-4096-8251-39d9791114e5
+		summarizeBy: none
+		sourceColumn: reference_date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// True for the most recent year in the gold window only.
+	column 'Is Latest Year'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: be6f5867-0b5b-4087-9b24-f47090b0b08b
+		summarizeBy: none
+		sourceColumn: is_latest_year
+
+	partition Year = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(GoldFolder & "\dim_year.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"year", Int64.Type}, {"reference_date", type date}, {"is_latest_year", type logical}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

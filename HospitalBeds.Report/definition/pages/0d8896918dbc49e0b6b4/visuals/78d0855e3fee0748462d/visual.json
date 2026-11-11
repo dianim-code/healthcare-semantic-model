@@ -1,0 +1,220 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "78d0855e3fee0748462d",
+  "position": {
+    "x": 596,
+    "y": 210,
+    "z": 4001,
+    "height": 490,
+    "width": 664,
+    "tabOrder": 4001
+  },
+  "visual": {
+    "visualType": "deneb7E15AEF80B9E4D4F8E12924291ECE89A",
+    "query": {
+      "queryState": {
+        "dataset": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Region"
+                    }
+                  },
+                  "Property": "ISTAT Region"
+                }
+              },
+              "queryRef": "Region.ISTAT Region",
+              "nativeQueryRef": "ISTAT Region",
+              "displayName": "Region"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Region"
+                    }
+                  },
+                  "Property": "Macro Area"
+                }
+              },
+              "queryRef": "Region.Macro Area",
+              "nativeQueryRef": "Macro Area"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Year"
+                    }
+                  },
+                  "Property": "Year"
+                }
+              },
+              "queryRef": "Year.Year",
+              "nativeQueryRef": "Year"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Ordinary Beds per 1,000 Residents"
+                }
+              },
+              "queryRef": "_Measures.Ordinary Beds per 1,000 Residents",
+              "nativeQueryRef": "Ordinary Beds per 1,000 Residents"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "vega": [
+        {
+          "properties": {
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'vegaLite'"
+                }
+              }
+            },
+            "jsonSpec": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\n  \"description\": \"Year-over-year slope chart: ordinary beds per 1,000 residents by region, 2022 to 2023. One line per region, coloured by macro area. Only the regions that tell the story are labelled, to avoid overlapping text: the three largest drops, any increase, the highest and the lowest region.\",\n  \"title\": {\n    \"text\": \"Change in ordinary beds per 1,000 residents, 2022 to 2023\",\n    \"subtitle\": \"Highlighted: three largest drops, any increase, highest and lowest region. Hover the grey lines for the others.\"\n  },\n  \"width\": \"container\",\n  \"height\": \"container\",\n  \"data\": {\n    \"name\": \"dataset\"\n  },\n  \"transform\": [\n    {\n      \"filter\": \"datum[''Year''] >= 2022 && datum[''Year''] <= 2023\"\n    },\n    {\n      \"calculate\": \"datum[''Year''] == 2022 ? datum[''Ordinary Beds per 1,000 Residents''] : null\",\n      \"as\": \"v2022\"\n    },\n    {\n      \"calculate\": \"datum[''Year''] == 2023 ? datum[''Ordinary Beds per 1,000 Residents''] : null\",\n      \"as\": \"v2023\"\n    },\n    {\n      \"joinaggregate\": [\n        {\n          \"op\": \"max\",\n          \"field\": \"v2022\",\n          \"as\": \"start\"\n        },\n        {\n          \"op\": \"max\",\n          \"field\": \"v2023\",\n          \"as\": \"end\"\n        }\n      ],\n      \"groupby\": [\n        \"Region\"\n      ]\n    },\n    {\n      \"calculate\": \"datum.end - datum.start\",\n      \"as\": \"change\"\n    },\n    {\n      \"window\": [\n        {\n          \"op\": \"dense_rank\",\n          \"as\": \"drop_rank\"\n        }\n      ],\n      \"sort\": [\n        {\n          \"field\": \"change\",\n          \"order\": \"ascending\"\n        }\n      ]\n    },\n    {\n      \"window\": [\n        {\n          \"op\": \"dense_rank\",\n          \"as\": \"high_rank\"\n        }\n      ],\n      \"sort\": [\n        {\n          \"field\": \"end\",\n          \"order\": \"descending\"\n        }\n      ]\n    },\n    {\n      \"window\": [\n        {\n          \"op\": \"dense_rank\",\n          \"as\": \"low_rank\"\n        }\n      ],\n      \"sort\": [\n        {\n          \"field\": \"end\",\n          \"order\": \"ascending\"\n        }\n      ]\n    },\n    {\n      \"calculate\": \"datum.drop_rank <= 3 || datum.change > 0 || datum.high_rank == 1 || datum.low_rank == 1\",\n      \"as\": \"highlight\"\n    }\n  ],\n  \"config\": {\n    \"view\": {\n      \"stroke\": null\n    },\n    \"font\": \"system-ui, -apple-system, Segoe UI, sans-serif\",\n    \"title\": {\n      \"color\": \"#0b0b0b\",\n      \"subtitleColor\": \"#767676\",\n      \"anchor\": \"start\",\n      \"fontSize\": 15,\n      \"subtitlePadding\": 6,\n      \"offset\": 20\n    },\n    \"axis\": {\n      \"labelColor\": \"#52514e\",\n      \"titleColor\": \"#52514e\",\n      \"gridColor\": \"#e4e3df\",\n      \"domainColor\": \"#a8a69e\",\n      \"tickColor\": \"#a8a69e\"\n    },\n    \"legend\": {\n      \"labelColor\": \"#52514e\",\n      \"titleColor\": \"#52514e\",\n      \"orient\": \"top\",\n      \"direction\": \"horizontal\"\n    }\n  },\n  \"encoding\": {\n    \"x\": {\n      \"field\": \"Year\",\n      \"type\": \"ordinal\",\n      \"title\": null,\n      \"axis\": {\n        \"labelAngle\": 0,\n        \"domain\": false,\n        \"ticks\": false,\n        \"labelFontSize\": 12,\n        \"labelFontWeight\": \"bold\"\n      },\n      \"scale\": {\n        \"padding\": 0.05,\n        \"paddingOuter\": 0.1\n      }\n    }\n  },\n  \"layer\": [\n    {\n      \"mark\": {\n        \"type\": \"line\",\n        \"strokeWidth\": 2\n      },\n      \"encoding\": {\n        \"y\": {\n          \"field\": \"Ordinary Beds per 1,000 Residents\",\n          \"type\": \"quantitative\",\n          \"title\": \"Ordinary beds per 1,000 residents\",\n          \"scale\": {\n            \"zero\": false\n          }\n        },\n        \"color\": {\n          \"field\": \"Macro Area\",\n          \"type\": \"nominal\",\n          \"title\": \"Macro area\",\n          \"scale\": {\n            \"domain\": [\n              \"Nord\",\n              \"Centro\",\n              \"Sud e Isole\"\n            ],\n            \"range\": [\n              \"#2a78d6\",\n              \"#eb6834\",\n              \"#1baf7a\"\n            ]\n          }\n        },\n        \"detail\": {\n          \"field\": \"Region\",\n          \"type\": \"nominal\"\n        },\n        \"opacity\": {\n          \"condition\": {\n            \"test\": \"datum.highlight\",\n            \"value\": 0.95\n          },\n          \"value\": 0.18\n        }\n      }\n    },\n    {\n      \"mark\": {\n        \"type\": \"point\",\n        \"filled\": true,\n        \"size\": 50\n      },\n      \"encoding\": {\n        \"y\": {\n          \"field\": \"Ordinary Beds per 1,000 Residents\",\n          \"type\": \"quantitative\"\n        },\n        \"color\": {\n          \"field\": \"Macro Area\",\n          \"type\": \"nominal\",\n          \"scale\": {\n            \"domain\": [\n              \"Nord\",\n              \"Centro\",\n              \"Sud e Isole\"\n            ],\n            \"range\": [\n              \"#2a78d6\",\n              \"#eb6834\",\n              \"#1baf7a\"\n            ]\n          }\n        },\n        \"detail\": {\n          \"field\": \"Region\",\n          \"type\": \"nominal\"\n        },\n        \"tooltip\": [\n          {\n            \"field\": \"Region\",\n            \"type\": \"nominal\",\n            \"title\": \"Region\"\n          },\n          {\n            \"field\": \"Year\",\n            \"type\": \"ordinal\",\n            \"title\": \"Year\"\n          },\n          {\n            \"field\": \"Ordinary Beds per 1,000 Residents\",\n            \"type\": \"quantitative\",\n            \"title\": \"Beds per 1,000\",\n            \"format\": \".2f\"\n          }\n        ],\n        \"opacity\": {\n          \"condition\": {\n            \"test\": \"datum.highlight\",\n            \"value\": 0.95\n          },\n          \"value\": 0.18\n        }\n      }\n    },\n    {\n      \"transform\": [\n        {\n          \"joinaggregate\": [\n            {\n              \"op\": \"min\",\n              \"field\": \"Ordinary Beds per 1,000 Residents\",\n              \"as\": \"y_min\"\n            },\n            {\n              \"op\": \"max\",\n              \"field\": \"Ordinary Beds per 1,000 Residents\",\n              \"as\": \"y_max\"\n            }\n          ]\n        },\n        {\n          \"filter\": \"datum[''Year''] == 2023 && datum.highlight\"\n        },\n        {\n          \"calculate\": \"(datum.y_max - datum.y_min) * 0.04\",\n          \"as\": \"label_gap\"\n        },\n        {\n          \"window\": [\n            {\n              \"op\": \"row_number\",\n              \"as\": \"label_rank\"\n            }\n          ],\n          \"sort\": [\n            {\n              \"field\": \"Ordinary Beds per 1,000 Residents\",\n              \"order\": \"descending\"\n            }\n          ]\n        },\n        {\n          \"calculate\": \"datum[''Ordinary Beds per 1,000 Residents''] + datum.label_rank * datum.label_gap\",\n          \"as\": \"label_shifted\"\n        },\n        {\n          \"window\": [\n            {\n              \"op\": \"min\",\n              \"field\": \"label_shifted\",\n              \"as\": \"label_floor\"\n            }\n          ],\n          \"sort\": [\n            {\n              \"field\": \"Ordinary Beds per 1,000 Residents\",\n              \"order\": \"descending\"\n            }\n          ],\n          \"frame\": [\n            null,\n            0\n          ]\n        },\n        {\n          \"calculate\": \"datum.label_floor - datum.label_rank * datum.label_gap\",\n          \"as\": \"label_y\"\n        }\n      ],\n      \"mark\": {\n        \"type\": \"text\",\n        \"align\": \"left\",\n        \"baseline\": \"middle\",\n        \"dx\": 9,\n        \"fontSize\": 11\n      },\n      \"encoding\": {\n        \"x\": {\n          \"field\": \"Year\",\n          \"type\": \"ordinal\"\n        },\n        \"y\": {\n          \"field\": \"label_y\",\n          \"type\": \"quantitative\",\n          \"title\": \"Ordinary beds per 1,000 residents\"\n        },\n        \"text\": {\n          \"field\": \"Region\",\n          \"type\": \"nominal\"\n        },\n        \"color\": {\n          \"value\": \"#252423\"\n        }\n      }\n    }\n  ],\n  \"padding\": {\n    \"right\": 150\n  }\n}'"
+                }
+              }
+            },
+            "jsonConfig": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{}'"
+                }
+              }
+            },
+            "enableTooltips": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableContextMenu": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableContextMenuSelector": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableSelection": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "selectionMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'simple'"
+                }
+              }
+            },
+            "selectionMaxDataPoints": {
+              "expr": {
+                "Literal": {
+                  "Value": "250D"
+                }
+              }
+            },
+            "enableHighlight": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'6.4.3'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stateManagement": [
+        {
+          "properties": {
+            "viewportHeight": {
+              "expr": {
+                "Literal": {
+                  "Value": "458D"
+                }
+              }
+            },
+            "viewportWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "630D"
+                }
+              }
+            },
+            "supportFieldConfiguration": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\"Region\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Macro Area\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Year\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":false,\"formatted\":false,\"names\":false},\"Ordinary Beds per 1,000 Residents\":{\"highlight\":false,\"highlightStatus\":false,\"highlightComparator\":false,\"format\":true,\"formatted\":true,\"names\":false}}'"
+                }
+              }
+            },
+            "denebMetaVersion": {
+              "expr": {
+                "Literal": {
+                  "Value": "'2'"
+                }
+              }
+            },
+            "consolidateFieldParameters": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "developer": [
+        {
+          "properties": {
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'2.0.1.0'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

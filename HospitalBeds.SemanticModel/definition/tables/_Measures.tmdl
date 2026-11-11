@@ -1,0 +1,230 @@
+/// Measures of the model, organised in display folders. The table holds no data: it only hosts the measures.
+table _Measures
+	lineageTag: bdd849c1-de6d-435f-ba82-02d4e9e27a86
+
+	/// Latest year in the current filter context (MAX of 'Year'[Year]). It is the year at which all stock measures (beds, population) are evaluated, so it can be shown on a card to tell the reader which 1 January the figures refer to.
+	measure 'Reference Year' = MAX ( 'Year'[Year] )
+		formatString: 0
+		displayFolder: Context
+		lineageTag: 119ca3da-0ca9-4097-95e1-b5f522291088
+
+	/// Active hospital beds on 1 January, all regimes (ordinary, paying, day hospital, day surgery). Beds are a stock measured on 1 January: when several years are in filter context the measure is evaluated at the latest year in context and never summed across years.
+	measure 'Beds Total' =
+			VAR _year = [Reference Year]
+			RETURN
+				CALCULATE ( SUM ( fact_hospital_beds[beds_total] ), 'Year'[Year] = _year )
+		formatString: #,0
+		displayFolder: Beds
+		lineageTag: 6ac1441e-8277-4171-9afb-01f734ebb275
+
+	/// Active beds for ordinary (overnight) inpatient care on 1 January. Beds are a stock measured on 1 January: when several years are in filter context the measure is evaluated at the latest year in context and never summed across years.
+	measure 'Beds Ordinary' =
+			VAR _year = [Reference Year]
+			RETURN
+				CALCULATE ( SUM ( fact_hospital_beds[beds_ordinary] ), 'Year'[Year] = _year )
+		formatString: #,0
+		displayFolder: Beds\By Regime
+		lineageTag: 4d622773-94d0-4901-a5aa-e38c54c69473
+
+	/// Active beds for paying ordinary inpatient care in public sites on 1 January. Beds are a stock measured on 1 January: when several years are in filter context the measure is evaluated at the latest year in context and never summed across years.
+	measure 'Beds Paying' =
+			VAR _year = [Reference Year]
+			RETURN
+				CALCULATE ( SUM ( fact_hospital_beds[beds_paying] ), 'Year'[Year] = _year )
+		formatString: #,0
+		displayFolder: Beds\By Regime
+		lineageTag: b6946e64-bab6-4b39-8b28-f2cd710ab78e
+
+	/// Active day-hospital (medical day care) beds on 1 January. Beds are a stock measured on 1 January: when several years are in filter context the measure is evaluated at the latest year in context and never summed across years.
+	measure 'Beds Day Hospital' =
+			VAR _year = [Reference Year]
+			RETURN
+				CALCULATE ( SUM ( fact_hospital_beds[beds_day_hospital] ), 'Year'[Year] = _year )
+		formatString: #,0
+		displayFolder: Beds\By Regime
+		lineageTag: 99f6b5ff-52cf-4350-9e7e-71e6aa2a97e3
+
+	/// Active day-surgery (surgical day care) beds on 1 January. Beds are a stock measured on 1 January: when several years are in filter context the measure is evaluated at the latest year in context and never summed across years.
+	measure 'Beds Day Surgery' =
+			VAR _year = [Reference Year]
+			RETURN
+				CALCULATE ( SUM ( fact_hospital_beds[beds_day_surgery] ), 'Year'[Year] = _year )
+		formatString: #,0
+		displayFolder: Beds\By Regime
+		lineageTag: d4b92e48-f48c-431d-a774-dde2d701b209
+
+	/// Number of distinct hospital sites with at least one discipline row on 1 January of the reference year. A site is counted once however many disciplines it reports. Evaluated at the latest year in context, never summed across years.
+	measure 'Facilities With Beds' =
+			VAR _year = [Reference Year]
+			RETURN
+				CALCULATE ( DISTINCTCOUNT ( fact_hospital_beds[facility_key] ), 'Year'[Year] = _year )
+		formatString: #,0
+		displayFolder: Beds
+		lineageTag: 89b671f8-e2f2-428d-b818-9ad4b36343eb
+
+	/// Resident population on 1 January (ISTAT, both sexes, all ages). A stock: with several years in filter context it is evaluated at the latest year in context and never summed across years.
+	measure 'Resident Population' =
+			VAR _year = [Reference Year]
+			RETURN
+				CALCULATE ( SUM ( fact_population[population] ), 'Year'[Year] = _year )
+		formatString: #,0
+		displayFolder: Population
+		lineageTag: 21a564ff-7241-43b8-8351-d72d87e06e16
+
+	/// All-regime beds per 1,000 residents. Includes day-hospital and day-surgery places, so it is NOT comparable with international ordinary-bed ratios: use Ordinary Beds per 1,000 Residents for that. Beds and population are taken at the same reference year and for the same regions; facility and discipline filters narrow the beds only, so the denominator stays the regional population.
+	measure 'Beds per 1,000 Residents' = DIVIDE ( [Beds Total], [Resident Population] ) * 1000
+		formatString: #,0.00
+		displayFolder: Per Capita
+		lineageTag: 2cf05a81-a166-441c-9416-2b718e502592
+
+	/// Ordinary (overnight) beds per 1,000 residents: the ratio to compare with international statistics, which count overnight inpatient beds and leave day-care places out. Paying beds are excluded. Same reference year and region for beds and population.
+	measure 'Ordinary Beds per 1,000 Residents' = DIVIDE ( [Beds Ordinary], [Resident Population] ) * 1000
+		formatString: #,0.00
+		displayFolder: Per Capita
+		lineageTag: a589e579-bf17-45e9-b874-d14b2eac6c14
+
+	/// All-regime beds on 1 January of the year before the reference year. Blank when the prior year is not in the data (for example the first year of the window).
+	measure 'Beds Total Prior Year' =
+			VAR _priorYear = [Reference Year] - 1
+			RETURN
+				CALCULATE ( [Beds Total], 'Year'[Year] = _priorYear )
+		formatString: #,0
+		displayFolder: Change vs Prior Year
+		lineageTag: ae37b05b-89d4-4d8a-9334-2c230f5abc8e
+
+	/// Absolute year-over-year change in all-regime beds: reference year minus the previous year. Blank when either year is missing.
+	measure 'Beds Total YoY Change' =
+			VAR _current = [Beds Total]
+			VAR _prior = [Beds Total Prior Year]
+			RETURN
+				IF ( NOT ISBLANK ( _current ) && NOT ISBLANK ( _prior ), _current - _prior )
+		formatString: +#,0;-#,0;0
+		displayFolder: Change vs Prior Year
+		lineageTag: 9c630b90-bce3-410a-addb-b6c2cff19aa2
+
+	/// Year-over-year change in all-regime beds as a percentage of the previous year. Blank when the previous year is missing or zero.
+	measure 'Beds Total YoY %' =
+			VAR _change = [Beds Total YoY Change]
+			VAR _prior = [Beds Total Prior Year]
+			RETURN
+				DIVIDE ( _change, _prior )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: Change vs Prior Year
+		lineageTag: b78534fd-c6d4-4e44-836e-81ff45de749c
+
+	/// Resident population on 1 January of the year before the reference year. Blank when the prior year is not in the data.
+	measure 'Resident Population Prior Year' =
+			VAR _priorYear = [Reference Year] - 1
+			RETURN
+				CALCULATE ( [Resident Population], 'Year'[Year] = _priorYear )
+		formatString: #,0
+		displayFolder: Change vs Prior Year
+		lineageTag: 8228ab13-0536-4fb4-b1e1-e8c3a0202650
+
+	/// Absolute year-over-year change in resident population: reference year minus the previous year. Blank when either year is missing.
+	measure 'Resident Population YoY Change' =
+			VAR _current = [Resident Population]
+			VAR _prior = [Resident Population Prior Year]
+			RETURN
+				IF ( NOT ISBLANK ( _current ) && NOT ISBLANK ( _prior ), _current - _prior )
+		formatString: +#,0;-#,0;0
+		displayFolder: Change vs Prior Year
+		lineageTag: 5de49568-8c0f-408c-a15b-a4bc5e15894e
+
+	/// Year-over-year change in resident population as a percentage of the previous year. Blank when the previous year is missing or zero.
+	measure 'Resident Population YoY %' =
+			VAR _change = [Resident Population YoY Change]
+			VAR _prior = [Resident Population Prior Year]
+			RETURN
+				DIVIDE ( _change, _prior )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: Change vs Prior Year
+		lineageTag: c88ac6c3-9823-4b96-ab95-cd0255e5ac89
+
+	/// Ordinary beds per 1,000 residents on 1 January of the year before the reference year.
+	measure 'Ordinary Beds per 1,000 Residents Prior Year' =
+			VAR _priorYear = [Reference Year] - 1
+			RETURN
+				CALCULATE ( [Ordinary Beds per 1,000 Residents], 'Year'[Year] = _priorYear )
+		formatString: #,0.00
+		displayFolder: Change vs Prior Year
+		lineageTag: faf72e94-0a5a-4b66-b789-b02592298148
+
+	/// Absolute year-over-year change in ordinary beds per 1,000 residents (reference year minus previous year). Blank when either year is missing.
+	measure 'Ordinary Beds per 1,000 Residents YoY Change' =
+			VAR _current = [Ordinary Beds per 1,000 Residents]
+			VAR _prior = [Ordinary Beds per 1,000 Residents Prior Year]
+			RETURN
+				IF ( NOT ISBLANK ( _current ) && NOT ISBLANK ( _prior ), _current - _prior )
+		formatString: +#,0.00;-#,0.00;0.00
+		displayFolder: Change vs Prior Year
+		lineageTag: 15328f17-de99-4a16-8a33-48c35e108601
+
+	/// Beds in the current selection as a share of the national total at the same reference year. The national total removes the region filter only, so discipline and facility filters apply to numerator and denominator alike. Under row-level security the denominator is the total the user is allowed to see.
+	measure 'Share of National Beds' = DIVIDE ( [Beds Total], CALCULATE ( [Beds Total], REMOVEFILTERS ( 'Region' ) ) )
+		formatString: 0.0%
+		displayFolder: Share and Rank
+		lineageTag: e30873ac-c850-4b78-9c6b-f9fceba84097
+
+	/// Rank of the region by all-regime beds per 1,000 residents. Shown only when exactly one region is in context. Ranks among the regions left by slicers (ALLSELECTED), 1 = highest; ties share a rank (dense ranking).
+	measure 'Region Rank by Beds per 1,000' =
+			IF (
+				HASONEVALUE ( 'Region'[Region Code] ),
+				RANKX ( ALLSELECTED ( 'Region' ), [Beds per 1,000 Residents], , DESC, DENSE )
+			)
+		formatString: 0
+		displayFolder: Share and Rank
+		lineageTag: c95b7522-8b72-4f9d-beba-d3a96969efc2
+
+	/// Rank of the region by ordinary beds per 1,000 residents, the internationally comparable ratio. Shown only when exactly one region is in context. Ranks among the regions left by slicers (ALLSELECTED), 1 = highest; ties share a rank (dense ranking).
+	measure 'Region Rank by Ordinary Beds per 1,000' =
+			IF (
+				HASONEVALUE ( 'Region'[Region Code] ),
+				RANKX ( ALLSELECTED ( 'Region' ), [Ordinary Beds per 1,000 Residents], , DESC, DENSE )
+			)
+		formatString: 0
+		displayFolder: Share and Rank
+		lineageTag: a53e7d9e-feb8-41b6-a3dd-ed2fe66f46f2
+
+	/// Ordinary beds per 1,000 residents for Italy as a whole, at the same reference year. It ignores region filters, including the row of a by-region visual, so it can sit next to the regional value as the national reference (bullet and ranked-bar Deneb templates). Discipline and facility filters still apply. Under row-level security it covers only the regions the user may see.
+	measure 'Ordinary Beds per 1,000 Residents (Italy)' = CALCULATE ( [Ordinary Beds per 1,000 Residents], REMOVEFILTERS ( 'Region' ) )
+		formatString: #,0.00
+		displayFolder: Per Capita
+		lineageTag: e1718a99-a559-4f71-a8cb-4b7cb84d242f
+
+	/// Text for the home page: the 1 January the data refers to (latest year in the model, whatever the filters).
+	measure 'Data As Of' =
+			VAR _year = CALCULATE ( MAX ( 'Year'[Year] ), REMOVEFILTERS () )
+			RETURN IF ( NOT ISBLANK ( _year ), "Data as of 1 January " & _year )
+		displayFolder: Context
+		lineageTag: 8fef8d6a-a873-417c-8b73-e0729b2d5715
+
+	/// Ordinary beds per 1,000 residents, only for the 10 disciplines with the most ordinary beds nationally (same year); blank for the others. Feeds the discipline heatmap so that it shows ten rows. The ranking removes every filter on Discipline, not only on its name: visuals also group by the sort column Discipline Code.
+	measure 'Ordinary Beds per 1,000 Residents (Top 10 Disciplines)' =
+			VAR _top = CALCULATETABLE ( TOPN ( 10, VALUES ( 'Discipline'[Discipline] ), CALCULATE ( [Beds Ordinary], REMOVEFILTERS ( 'Region' ) ), DESC ), REMOVEFILTERS ( 'Discipline' ) )
+			RETURN IF ( SELECTEDVALUE ( 'Discipline'[Discipline] ) IN _top, [Ordinary Beds per 1,000 Residents] )
+		formatString: #,0.00
+		displayFolder: Per Capita
+		lineageTag: 6d0f2444-5ec3-48dc-b052-022f65b8000f
+
+	/// Display order of the region (Ministry order; the first of the two autonomous provinces for Trentino-Alto Adige). Helper for charts grouped by ISTAT Region, where the Sort Order column would split Trentino-Alto Adige into two rows.
+	measure 'Region Order' = MIN ( 'Region'[Sort Order] )
+		formatString: 0
+		isHidden
+		displayFolder: Context
+		lineageTag: 61e02284-ca72-4c2e-bc3e-8ea12565b530
+
+	/// Placeholder column so that the table can exist; hidden and empty.
+	column Placeholder
+		dataType: string
+		isHidden
+		lineageTag: 0e811e93-685b-442c-a8fa-3519de3cff0b
+		summarizeBy: none
+		sourceColumn: Placeholder
+
+	partition _Measures = m
+		mode: import
+		source = #table ( type table [Placeholder = text], {} )
+
+	annotation PBI_ResultType = Table
+

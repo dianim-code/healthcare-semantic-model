@@ -1,0 +1,192 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "e31fe1b010b465695277",
+  "position": {
+    "x": 20,
+    "y": 210,
+    "z": 3001,
+    "height": 490,
+    "width": 560,
+    "tabOrder": 3001
+  },
+  "visual": {
+    "visualType": "deneb7E15AEF80B9E4D4F8E12924291ECE89A",
+    "query": {
+      "queryState": {
+        "dataset": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Region"
+                    }
+                  },
+                  "Property": "ISTAT Region"
+                }
+              },
+              "queryRef": "Region.ISTAT Region",
+              "nativeQueryRef": "ISTAT Region",
+              "displayName": "Region"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Ordinary Beds per 1,000 Residents"
+                }
+              },
+              "queryRef": "_Measures.Ordinary Beds per 1,000 Residents",
+              "nativeQueryRef": "Ordinary Beds per 1,000 Residents"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Ordinary Beds per 1,000 Residents (Italy)"
+                }
+              },
+              "queryRef": "_Measures.Ordinary Beds per 1,000 Residents (Italy)",
+              "nativeQueryRef": "Ordinary Beds per 1,000 Residents (Italy)"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "vega": [
+        {
+          "properties": {
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'vegaLite'"
+                }
+              }
+            },
+            "jsonSpec": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\n  \"description\": \"Ranked bar chart: ordinary beds per 1,000 residents by region in 2023, sorted from highest to lowest. Bars above the national value are blue, those below are grey; a dashed line marks Italy and each bar carries its value.\",\n  \"title\": {\n    \"text\": \"Regions ranked by ordinary beds per 1,000 residents, 2023\",\n    \"subtitle\": \"Blue: above the national value (dashed line). Grey: below. All disciplines, ordinary regime only.\"\n  },\n  \"width\": \"container\",\n  \"height\": \"container\",\n  \"data\": {\n    \"name\": \"dataset\"\n  },\n  \"transform\": [\n    {\n      \"joinaggregate\": [\n        {\n          \"op\": \"max\",\n          \"field\": \"Ordinary Beds per 1,000 Residents\",\n          \"as\": \"max_value\"\n        }\n      ]\n    },\n    {\n      \"calculate\": \"datum.max_value * 1.13\",\n      \"as\": \"label_x\"\n    }\n  ],\n  \"config\": {\n    \"view\": {\n      \"stroke\": null\n    },\n    \"font\": \"system-ui, -apple-system, Segoe UI, sans-serif\",\n    \"title\": {\n      \"color\": \"#0b0b0b\",\n      \"subtitleColor\": \"#767676\",\n      \"anchor\": \"start\",\n      \"fontSize\": 15,\n      \"offset\": 20,\n      \"subtitlePadding\": 6\n    },\n    \"axis\": {\n      \"labelColor\": \"#52514e\",\n      \"titleColor\": \"#52514e\",\n      \"gridColor\": \"#e4e3df\",\n      \"domainColor\": \"#a8a69e\",\n      \"tickColor\": \"#a8a69e\"\n    },\n    \"legend\": {\n      \"labelColor\": \"#52514e\",\n      \"titleColor\": \"#52514e\"\n    }\n  },\n  \"layer\": [\n    {\n      \"mark\": {\n        \"type\": \"bar\",\n        \"cornerRadiusEnd\": 3,\n        \"height\": {\n          \"band\": 0.62\n        }\n      },\n      \"encoding\": {\n        \"y\": {\n          \"field\": \"Region\",\n          \"type\": \"nominal\",\n          \"sort\": {\n            \"field\": \"Ordinary Beds per 1,000 Residents\",\n            \"order\": \"descending\"\n          },\n          \"title\": null,\n          \"axis\": {\n            \"domain\": false,\n            \"ticks\": false,\n            \"labelPadding\": 8,\n            \"labelFontSize\": 11\n          }\n        },\n        \"x\": {\n          \"field\": \"Ordinary Beds per 1,000 Residents\",\n          \"type\": \"quantitative\",\n          \"axis\": null,\n          \"scale\": {\n            \"zero\": true\n          }\n        },\n        \"color\": {\n          \"condition\": {\n            \"test\": \"datum[''Ordinary Beds per 1,000 Residents''] >= datum[''Ordinary Beds per 1,000 Residents (Italy)'']\",\n            \"value\": \"#2a78d6\"\n          },\n          \"value\": \"#c8c6c4\"\n        },\n        \"tooltip\": [\n          {\n            \"field\": \"Region\",\n            \"type\": \"nominal\",\n            \"title\": \"Region\"\n          },\n          {\n            \"field\": \"Ordinary Beds per 1,000 Residents\",\n            \"type\": \"quantitative\",\n            \"title\": \"Beds per 1,000\",\n            \"format\": \".2f\"\n          },\n          {\n            \"field\": \"Ordinary Beds per 1,000 Residents (Italy)\",\n            \"type\": \"quantitative\",\n            \"title\": \"Italy, per 1,000\",\n            \"format\": \".2f\"\n          }\n        ]\n      }\n    },\n    {\n      \"mark\": {\n        \"type\": \"text\",\n        \"align\": \"right\",\n        \"baseline\": \"middle\",\n        \"fontSize\": 11,\n        \"color\": \"#52514e\"\n      },\n      \"encoding\": {\n        \"y\": {\n          \"field\": \"Region\",\n          \"type\": \"nominal\",\n          \"sort\": {\n            \"field\": \"Ordinary Beds per 1,000 Residents\",\n            \"order\": \"descending\"\n          }\n        },\n        \"x\": {\n          \"field\": \"label_x\",\n          \"type\": \"quantitative\"\n        },\n        \"text\": {\n          \"field\": \"Ordinary Beds per 1,000 Residents\",\n          \"type\": \"quantitative\",\n          \"format\": \".2f\"\n        }\n      }\n    },\n    {\n      \"mark\": {\n        \"type\": \"rule\",\n        \"color\": \"#0b0b0b\",\n        \"strokeDash\": [\n          4,\n          3\n        ],\n        \"strokeWidth\": 1.5\n      },\n      \"encoding\": {\n        \"x\": {\n          \"aggregate\": \"mean\",\n          \"field\": \"Ordinary Beds per 1,000 Residents (Italy)\",\n          \"type\": \"quantitative\"\n        }\n      }\n    },\n    {\n      \"transform\": [\n        {\n          \"aggregate\": [\n            {\n              \"op\": \"mean\",\n              \"field\": \"Ordinary Beds per 1,000 Residents (Italy)\",\n              \"as\": \"italy\"\n            }\n          ]\n        },\n        {\n          \"calculate\": \"''Italy '' + format(datum.italy, ''.2f'')\",\n          \"as\": \"italy_label\"\n        }\n      ],\n      \"mark\": {\n        \"type\": \"text\",\n        \"align\": \"left\",\n        \"baseline\": \"bottom\",\n        \"dx\": 4,\n        \"dy\": -2,\n        \"fontSize\": 11,\n        \"fontWeight\": \"bold\",\n        \"color\": \"#0b0b0b\"\n      },\n      \"encoding\": {\n        \"x\": {\n          \"field\": \"italy\",\n          \"type\": \"quantitative\"\n        },\n        \"y\": {\n          \"value\": 0\n        },\n        \"text\": {\n          \"field\": \"italy_label\",\n          \"type\": \"nominal\"\n        }\n      }\n    }\n  ]\n}'"
+                }
+              }
+            },
+            "jsonConfig": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{}'"
+                }
+              }
+            },
+            "enableTooltips": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableContextMenu": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableContextMenuSelector": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableSelection": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "selectionMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'simple'"
+                }
+              }
+            },
+            "selectionMaxDataPoints": {
+              "expr": {
+                "Literal": {
+                  "Value": "250D"
+                }
+              }
+            },
+            "enableHighlight": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'6.4.3'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stateManagement": [
+        {
+          "properties": {
+            "denebMetaVersion": {
+              "expr": {
+                "Literal": {
+                  "Value": "'2'"
+                }
+              }
+            },
+            "viewportHeight": {
+              "expr": {
+                "Literal": {
+                  "Value": "458D"
+                }
+              }
+            },
+            "viewportWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "526D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "developer": [
+        {
+          "properties": {
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'2.0.1.0'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

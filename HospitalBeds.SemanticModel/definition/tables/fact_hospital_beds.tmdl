@@ -1,0 +1,104 @@
+/// Active hospital beds on 1 January, by year, site and discipline.
+table fact_hospital_beds
+	lineageTag: b72533ec-194f-4f05-845b-3929d20200e1
+
+	/// Reference year (beds active on 1 January).
+	column year
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b6a4d1c4-62d4-4e7b-8f1a-0bd0d8244c66
+		summarizeBy: none
+		sourceColumn: year
+
+	/// Hospital site.
+	column facility_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 8df0e143-3989-417c-89e0-4fd5f3d82e16
+		summarizeBy: none
+		sourceColumn: facility_key
+
+	/// Discipline.
+	column discipline_code
+		dataType: string
+		isHidden
+		lineageTag: e1eceb2f-eb37-4403-a977-ceb66fc06550
+		summarizeBy: none
+		sourceColumn: discipline_code
+
+	/// Region of the site, denormalised from 'Facility' so that the model stays a pure star.
+	column region_code
+		dataType: string
+		isHidden
+		lineageTag: 8866927f-d734-4903-aa08-772ad61e972e
+		summarizeBy: none
+		sourceColumn: region_code
+
+	/// Active wards for public sites. For private accredited clinics, 1 only flags that accredited beds exist.
+	column ward_count
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 50a2f49a-80d5-4208-a52d-b13ffd2a42a5
+		summarizeBy: none
+		sourceColumn: ward_count
+
+	/// Beds for ordinary (overnight) inpatient care.
+	column beds_ordinary
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 7de2e35f-5b45-421b-97bf-3cd91b210921
+		summarizeBy: none
+		sourceColumn: beds_ordinary
+
+	/// Beds for paying ordinary inpatient care in public sites.
+	column beds_paying
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 0f06c898-3731-45e5-af96-1a531c508964
+		summarizeBy: none
+		sourceColumn: beds_paying
+
+	/// Day-hospital beds (medical day care).
+	column beds_day_hospital
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 4bd2eb49-8622-40c2-9fbd-4206776b5977
+		summarizeBy: none
+		sourceColumn: beds_day_hospital
+
+	/// Day-surgery beds (surgical day care).
+	column beds_day_surgery
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 16936ac1-6092-4850-a20c-c99febc28274
+		summarizeBy: none
+		sourceColumn: beds_day_surgery
+
+	/// Sum of the four regimes. Rule enforced as a data-quality check.
+	column beds_total
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 925c51e7-0496-4635-9576-8b8f8256f22f
+		summarizeBy: none
+		sourceColumn: beds_total
+
+	partition fact_hospital_beds = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(GoldFolder & "\fact_hospital_beds.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"year", Int64.Type}, {"facility_key", Int64.Type}, {"discipline_code", type text}, {"region_code", type text}, {"ward_count", Int64.Type}, {"beds_ordinary", Int64.Type}, {"beds_paying", Int64.Type}, {"beds_day_hospital", Int64.Type}, {"beds_day_surgery", Int64.Type}, {"beds_total", Int64.Type}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

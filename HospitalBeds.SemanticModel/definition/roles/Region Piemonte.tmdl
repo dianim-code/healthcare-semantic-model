@@ -1,0 +1,10 @@
+/// Example static role: members see only Piemonte (region code 010). The filter on 'Region' flows to both fact tables through the relationships; 'Facility' is filtered separately because it has no relationship to 'Region'.
+role 'Region Piemonte'
+	modelPermission: read
+
+	tablePermission Region = 'Region'[Region Code] = "010"
+
+	tablePermission Facility = 'Facility'[Region Code] = "010"
+
+	annotation PBI_Id = a355fb0d6c7d41ee9f32a5f8d0edcea2
+

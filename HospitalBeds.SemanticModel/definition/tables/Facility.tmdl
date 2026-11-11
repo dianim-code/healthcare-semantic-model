@@ -1,0 +1,134 @@
+/// Hospital sites (stabilimenti). A multi-site public hospital appears once per site.
+table Facility
+	lineageTag: 5c930a8f-be2f-4df7-aca3-e717f8b6739d
+
+	/// Surrogate key, 1..N assigned by ascending facility_id over the facilities in the gold window. Stable for a given window, not across windows.
+	column 'Facility Key'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e8004546-1e76-4b19-a5de-b7bd4db9f06e
+		summarizeBy: none
+		sourceColumn: facility_key
+
+	/// Business key. structure_code when site_subcode is null, otherwise structure_code + "-" + site_subcode (e.g. 010030-01).
+	column 'Facility ID'
+		dataType: string
+		lineageTag: 6f6c6c17-3988-45da-80d1-b9341d4f065f
+		summarizeBy: none
+		sourceColumn: facility_id
+
+	/// Ministry 6-digit code of the hospital structure; the first 3 digits are the region code.
+	column 'Structure Code'
+		dataType: string
+		lineageTag: 1513f800-f7dd-48cf-a9bd-e5f383100718
+		summarizeBy: none
+		sourceColumn: structure_code
+
+	/// 2-digit progressive of the site within a multi-site structure. Null for single-site structures.
+	column 'Site Subcode'
+		dataType: string
+		lineageTag: 76c2a6fd-53e5-4d5e-ad1b-202db496bd6f
+		summarizeBy: none
+		sourceColumn: site_subcode
+
+	/// Name of the hospital site, as published (upper case, whitespace normalised).
+	column Facility
+		dataType: string
+		lineageTag: de4acdd4-96ec-40ed-8cbc-90735e22b86f
+		summarizeBy: none
+		sourceColumn: facility_name
+
+	/// Main street address of the site.
+	column Address
+		dataType: string
+		lineageTag: 8fb28bab-8ed9-4fb0-8c73-2be345009ea4
+		summarizeBy: none
+		sourceColumn: address
+
+	/// ISTAT 6-digit municipality code (3-digit province + 3-digit municipality).
+	column 'Municipality Code'
+		dataType: string
+		lineageTag: 4baf2e48-7c3e-40d8-accf-0ce279d0be40
+		summarizeBy: none
+		sourceColumn: municipality_code
+
+	/// Municipality name, as published.
+	column Municipality
+		dataType: string
+		lineageTag: cfa91824-77e0-4f9b-9e62-57dd23e149bd
+		summarizeBy: none
+		sourceColumn: municipality_name
+
+	/// 2-letter province abbreviation (sigla), e.g. TO.
+	column Province
+		dataType: string
+		lineageTag: e16ab61e-b4a0-4534-b051-73d656bfff08
+		summarizeBy: none
+		sourceColumn: province_code
+
+	/// Region where the site is located.
+	column 'Region Code'
+		dataType: string
+		lineageTag: 701a83e9-93e3-4cc9-aef8-ddcf9bf7741f
+		summarizeBy: none
+		sourceColumn: region_code
+
+	/// Health authority (azienda sanitaria) the site belongs to, as region_code + 3-digit authority code (e.g. 010203). Authority codes are unique only within a region.
+	column 'Health Authority ID'
+		dataType: string
+		lineageTag: 64f75ed7-5400-4992-a957-cca64e9f9d20
+		summarizeBy: none
+		sourceColumn: health_authority_id
+
+	/// Source "Tipo Azienda" (1 / 2), labels verbatim from the Ministry data dictionary. Type 2 covers hospital authorities, university hospitals and IRCCS.
+	column 'Health Authority Type'
+		dataType: string
+		lineageTag: 348a5217-8377-4ec1-baaf-329b2fda61d1
+		summarizeBy: none
+		sourceColumn: health_authority_type
+
+	/// Ministry code of the type of hospital structure.
+	column 'Facility Type Code'
+		dataType: string
+		lineageTag: 5067841e-0ff0-4084-8f09-b551799bd78a
+		summarizeBy: none
+		sourceColumn: facility_type_code
+
+	/// Ministry description of the facility type (e.g. Casa di cura privata accreditata).
+	column 'Facility Type'
+		dataType: string
+		lineageTag: 307848d9-b5f5-4d62-b193-90ff2b59fe61
+		summarizeBy: none
+		sourceColumn: facility_type_name
+		sortByColumn: 'Facility Type Code'
+
+	/// First year in the gold window in which the site reports beds.
+	column 'First Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: 50456052-d7b1-4691-92b9-182a7416bbec
+		summarizeBy: none
+		sourceColumn: first_year
+
+	/// Last year in the gold window in which the site reports beds. Attributes come from this year (SCD type 1).
+	column 'Last Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b487b7d-0333-4c9e-905d-236f2a35f845
+		summarizeBy: none
+		sourceColumn: last_year
+
+	partition Facility = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(GoldFolder & "\dim_facility.csv"), [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"facility_key", Int64.Type}, {"facility_id", type text}, {"structure_code", type text}, {"site_subcode", type text}, {"facility_name", type text}, {"address", type text}, {"municipality_code", type text}, {"municipality_name", type text}, {"province_code", type text}, {"region_code", type text}, {"health_authority_id", type text}, {"health_authority_type", type text}, {"facility_type_code", type text}, {"facility_type_name", type text}, {"first_year", Int64.Type}, {"last_year", Int64.Type}}, "en-US"),
+				    EmptyToNull = Table.ReplaceValue(Typed, "", null, Replacer.ReplaceValue, {"site_subcode", "address"})
+				in
+				    EmptyToNull
+
+	annotation PBI_ResultType = Table
+
