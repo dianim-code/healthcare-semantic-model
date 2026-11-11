@@ -27,15 +27,9 @@ Data contract: `contract/gold_schema.yml` (vendored, read-only, see `contract/VE
 
 ## Model
 
-```mermaid
-erDiagram
-    Year ||--o{ fact_hospital_beds : "Year = year"
-    Facility ||--o{ fact_hospital_beds : "Facility Key = facility_key"
-    Discipline ||--o{ fact_hospital_beds : "Discipline Code = discipline_code"
-    Region ||--o{ fact_hospital_beds : "Region Code = region_code"
-    Year ||--o{ fact_population : "Year = year"
-    Region ||--o{ fact_population : "Region Code = region_code"
-```
+![Star schema: Year, Region, Discipline and Facility filter fact_hospital_beds; Year and Region filter fact_population](docs/images/model.drawio.svg)
+
+*The diagrams are `.drawio.svg` files: GitHub shows them as images, and draw.io (desktop, web or the VS Code extension) opens and edits them.*
 
 All relationships are many-to-one, single direction (dimension to fact), active. `Facility` has a
 `Region Code` column but **no relationship** to `Region`: the beds fact already carries the region,
@@ -173,13 +167,7 @@ The same model reads the gold tables either from the CSVs of this repository (th
 opens without an account) or straight from the `healthcare-lakehouse` gold schema through a Databricks SQL
 warehouse. The parameter **`DataSource`** picks the source; nothing else in the model changes (ADR-022).
 
-```mermaid
-flowchart LR
-    P["DataSource"] --> G["GoldTable(name)"]
-    C["sample-data/gold/*.csv"] -->|CSV| G
-    D[("Databricks SQL warehouse<br/>gold schema")] -->|Databricks| G
-    G --> T["Year, Region, Discipline, Facility,<br/>fact_hospital_beds, fact_population"]
-```
+![Two sources, one model: DataSource picks CSV or the Databricks SQL warehouse; GoldTable(name) feeds the six table queries](docs/images/live-source.drawio.svg)
 
 To use Databricks, set in **Home > Transform data > Edit parameters**:
 
